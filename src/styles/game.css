@@ -179,59 +179,10 @@ button { font-family: inherit; }
 }
 
 /* VS Bar */
-.cs__vs-bar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 24px;
-  position: relative;
-  z-index: 1;
-}
-
 /* Character grid */
-.cs__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
-  position: relative;
-  z-index: 1;
-}
-
 /* Portrait area */
-.cs__card-portrait {
-  height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--black);
-  border: 1px solid var(--gray-dark);
-  margin-bottom: 10px;
-  clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
-}
-
 /* Cursor indicators */
-.cs__card-cursors {
-  position: absolute;
-  top: 6px;
-  left: 6px;
-  right: 6px;
-  display: flex;
-  justify-content: space-between;
-  pointer-events: none;
-}
-
 /* Footer */
-.cs__footer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  position: relative;
-  z-index: 1;
-}
-
 /* ========================================
    FIGHT HUD
    ======================================== */
@@ -783,19 +734,6 @@ button { font-family: inherit; }
   .lobby__start-btn-text { font-size: 18px; }
   .lobby__roster-chars { font-size: 16px; gap: 10px; }
 
-  .cs { padding: 12px; }
-  .cs__title-main { font-size: 26px; letter-spacing: 2px; }
-  .cs__title-sub { font-size: 13px; letter-spacing: 4px; }
-  .cs__grid { grid-template-columns: 1fr; gap: 12px; }
-  .cs__card { min-height: 140px; }
-  .cs__card-portrait { height: 60px; }
-  .cs__card-initial { font-size: 34px; }
-  .cs__vs-bar { gap: 8px; }
-  .cs__player-name { font-size: 13px; }
-  .cs__vs { font-size: 18px; }
-  .cs__controls-help { font-size: 11px; gap: 12px; flex-direction: column; gap: 4px; }
-  .cs__btn { padding: 8px 20px; font-size: 12px; }
-
   .local-page--fight { padding: 6px; }
   .fight { gap: 6px; }
   .fight__hud { padding: 6px 8px; gap: 8px; }
@@ -854,10 +792,12 @@ button { font-family: inherit; }
 }
 
 @media (pointer: coarse) {
-  .cs__card { cursor: default; }
   .fight__canvas-wrap { touch-action: none; }
+
   .game-canvas { touch-action: none; }
+
 }
+
 
 /* ========================================
    Input Mode Panel — manual override for touch/desktop detection
@@ -1420,11 +1360,6 @@ button { font-family: inherit; }
 /* ========================================
    #4 — CHARACTER SELECT ENTRANCE ANIMATION
    ======================================== */
-.cs__card--enter {
-  opacity: 0;
-  animation: cs-card-enter 0.5s cubic-bezier(0.2, 1.1, 0.3, 1) forwards;
-}
-
 @keyframes cs-card-enter {
   from {
     opacity: 0;
@@ -1440,7 +1375,6 @@ button { font-family: inherit; }
    #5 — BUTTON PRESS FEEDBACK
    ======================================== */
 .fhud__btn:active,
-.cs__btn:active,
 .lobby__start-btn:active,
 .input-mode-btn:active {
   transform: scale(0.92);
@@ -2082,26 +2016,7 @@ button { font-family: inherit; }
 /* ========================================
    MODE SELECTOR + DIFFICULTY (Character Select)
    ======================================== */
-.cs__mode-bar {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-  margin-bottom: 12px;
-  position: relative;
-  z-index: 1;
-}
-
 /* Difficulty selector */
-.cs__difficulty-bar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 16px;
-  position: relative;
-  z-index: 1;
-}
-
 /* ========================================
    PREPARING SCREEN — download progress
    ======================================== */
@@ -2246,13 +2161,6 @@ button { font-family: inherit; }
 /* ========================================
    DOWNLOAD BADGES (P5 style, subtle)
    ======================================== */
-.cs__card-download {
-  margin-top: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
 .dl-badge {
   font-size: 10px;
   font-weight: 700;
@@ -2291,6 +2199,49 @@ button { font-family: inherit; }
   background: var(--gold);
   transition: width 0.3s ease-out;
 }
+
+/* ========================================
+   CHARACTER SELECT — DBFZ-style portrait grid
+   ======================================== */
+
+.cs {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px;
+  position: relative;
+}
+
+/* Character grid — DBFZ-style portrait cards */
+
+.cs__grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 900px) {
+}
+
+
+@media (max-width: 600px) {
+}
+
+
+@keyframes csCardEnter {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (hover: hover) {
+}
+
+
+@media (max-width: 600px) {
+}
+
 
 /* ========================================
    CHARACTER SELECT — DBFZ-style portrait grid
