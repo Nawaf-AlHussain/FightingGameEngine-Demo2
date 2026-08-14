@@ -74,6 +74,24 @@ export const MANIFEST_URL =
 /** Cache the manifest so we only fetch it once per session */
 let cachedManifest: RemoteManifest | null = null;
 
+/** Manifest version — used for cache-busting portrait.png URLs. Updated when
+ *  the manifest is fetched. If 0, the manifest hasn't been fetched yet. */
+let cachedManifestVersion: number = 0;
+
+/** Base URL for character portrait images in the DemoAssets repo.
+ *  Each character folder should contain a portrait.png (3:4 aspect ratio
+ *  recommended). Works for both bundled and downloaded characters — the
+ *  URL pattern is the same: chars/<id>/portrait.png */
+const PORTRAIT_CDN_BASE =
+  "https://cdn.jsdelivr.net/gh/FightingGameEngine/DemoAssets@main/chars/";
+
+/** Returns the portrait.png URL for a character, with the manifest version
+ *  as a cache-busting query string. When you add or update a portrait in
+ *  DemoAssets, bump the manifest version to force browsers to re-fetch. */
+export function getPortraitUrl(charId: string): string {
+  return `${PORTRAIT_CDN_BASE}${charId}/portrait.png?v=${cachedManifestVersion}`;
+}
+
 /**
  * Fetch the remote character manifest from GitHub (via jsDelivr CDN).
  *
@@ -112,6 +130,7 @@ export async function fetchRemoteManifest(
     );
 
     cachedManifest = manifest;
+    cachedManifestVersion = manifest.version;
     return manifest;
   } catch (e) {
     console.warn(

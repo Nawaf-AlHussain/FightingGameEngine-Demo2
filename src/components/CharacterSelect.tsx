@@ -13,7 +13,7 @@ import {
   getBundledCharacters,
   type CharacterInfo,
 } from "@/lib/character-catalog";
-import { getAllCharacters } from "@/lib/character-manifest";
+import { getAllCharacters, getPortraitUrl } from "@/lib/character-manifest";
 import { isCharacterCached, cacheCharacter, clearCharacterCache } from "@/lib/character-cache";
 import { downloadCharacter, type DownloadProgress } from "@/lib/character-downloader";
 import { UI_FLAGS } from "@/lib/ui-flags";
@@ -31,6 +31,31 @@ interface CharacterSelectProps {
   ) => void;
   onCancel: () => void;
   isTouch?: boolean;
+}
+
+/**
+ * Portrait — loads a character's portrait.png from DemoAssets with a graceful
+ * fallback to a bold first-letter design when the image hasn't been uploaded
+ * yet or fails to load. The image fades in on top of the fallback letter
+ * when it arrives, so there's no layout shift.
+ */
+function Portrait({ charId, displayName }: { charId: string; displayName: string }) {
+  const [imgStatus, setImgStatus] = useState<"loading" | "loaded" | "error">("loading");
+  const url = getPortraitUrl(charId);
+
+  return (
+    <>
+      <span className="cs__card-fallback">{displayName.charAt(0)}</span>
+      <img
+        src={url}
+        alt=""
+        loading="lazy"
+        onLoad={() => setImgStatus("loaded")}
+        onError={() => setImgStatus("error")}
+        className={`cs__card-img ${imgStatus === "loaded" ? "cs__card-img--visible" : ""}`}
+      />
+    </>
+  );
 }
 
 export default function CharacterSelect({ onLockIn, onCancel, isTouch = false }: CharacterSelectProps) {
@@ -295,40 +320,78 @@ export default function CharacterSelect({ onLockIn, onCancel, isTouch = false }:
         {characters.map((char, i) => {
           const isP1Here = i === p1Index;
           const isP2Here = i === p2Index;
+          const dl = downloadStates[char.id];
+          const isReady = char.bundled || dl?.status === "cached";
+          const isDownloading = dl?.status === "downloading";
+          const isError = dl?.status === "error";
+          const isGreyed = !isReady;
+          const isLockedCard = (p1Locked && isP1Here) || (p2Locked && isP2Here);
           return (
             <button
               key={char.id}
-              className={`cs__card ${isP1Here ? "cs__card--p1" : ""} ${isP2Here ? "cs__card--p2" : ""} ${isP1Here && isP2Here ? "cs__card--both" : ""} ${UI_FLAGS.charSelectEntrance ? "cs__card--enter" : ""}`}
-              style={UI_FLAGS.charSelectEntrance ? { animationDelay: `${i * 100}ms` } : undefined}
+              className={[
+                "cs__card",
+                isP1Here ? "cs__card--p1" : "",
+                isP2Here ? "cs__card--p2" : "",
+                isP1Here && isP2Here ? "cs__card--both" : "",
+                isReady ? "cs__card--ready" : "",
+                isGreyed ? "cs__card--greyed" : "",
+                isLockedCard ? "cs__card--locked" : "",
+                UI_FLAGS.charSelectEntrance ? "cs__card--enter" : "",
+              ].filter(Boolean).join(" ")}
+              style={UI_FLAGS.charSelectEntrance ? { animationDelay: `${i * 60}ms` } : undefined}
               onClick={() => handleCardClick(i)}
             >
+              {/* Portrait area (3:4 aspect ratio) */}
               <div className="cs__card-portrait">
-                <span className="cs__card-initial">{char.displayName.charAt(0)}</span>
-              </div>
-              <div className="cs__card-name">{char.displayName}</div>
-              <div className="cs__card-desc">{char.description}</div>
-              {/* Download status badge for non-bundled characters */}
-              {!char.bundled && (() => {
-                const dl = downloadStates[char.id];
-                if (dl?.status === "cached") return <div className="cs__card-download"><span className="dl-badge dl-badge--cached">✓ Ready</span></div>;
-                if (dl?.status === "downloading") return (
-                  <div className="cs__card-download">
-                    <span className="dl-badge dl-badge--downloading">{dl.progress?.toFixed(0)}%</span>
-                    <div className="dl-progress"><div className="dl-progress-fill" style={{ width: `${dl.progress}%` }} /></div>
+                <Portrait charId={char.id} displayName={char.displayName} />
+
+                {/* Dark overlay for non-downloaded characters */}
+                {isGreyed && <div className="cs__card-overlay" />}
+
+                {/* Download progress bar */}
+                {isDownloading && (
+                  <div className="cs__card-progress">
+                    <div className="cs__card-progress-fill" style={{ width: `${dl.progress ?? 0}%` }} />
                   </div>
-                );
-                if (dl?.status === "error") return <div className="cs__card-download"><span className="dl-badge dl-badge--error">Failed</span></div>;
-                return <div className="cs__card-download"><span className="dl-badge dl-badge--idle">{char.sizeMB}MB</span></div>;
-              })()}
-              <div className="cs__card-cursors">
-                {isP1Here && (
-                  <span className={`cs__cursor cs__cursor--p1 ${p1Locked ? "cs__cursor--locked" : ""}`}>
-                    {p1Locked ? "✓" : "◄"}
-                  </span>
                 )}
-                {isP2Here && (
-                  <span className={`cs__cursor cs__cursor--p2 ${p2Locked ? "cs__cursor--locked" : ""}`}>
-                    {p2Locked ? "✓" : "►"}
+
+                {/* Lock / status icon (top-right corner) */}
+                {isGreyed && !isDownloading && !isError && (
+                  <div className="cs__card-lock" aria-hidden="true">🔒</div>
+                )}
+                {isError && (
+                  <div className="cs__card-lock cs__card-lock--error" aria-hidden="true">↻</div>
+                )}
+
+                {/* Cursor badges (top corners) */}
+                <div className="cs__card-cursors">
+                  {isP1Here && (
+                    <span className={`cs__cursor cs__cursor--p1 ${p1Locked ? "cs__cursor--locked" : ""}`}>
+                      1P
+                    </span>
+                  )}
+                  {isP2Here && (
+                    <span className={`cs__cursor cs__cursor--p2 ${p2Locked ? "cs__cursor--locked" : ""}`}>
+                      {p2Label}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Bottom info: name (if ready) or download badge */}
+              <div className="cs__card-info">
+                {isReady ? (
+                  <span className="cs__card-name">{char.displayName}</span>
+                ) : isDownloading ? (
+                  <span className="cs__card-badge cs__card-badge--downloading">
+                    {dl.progress?.toFixed(0)}%
+                  </span>
+                ) : isError ? (
+                  <span className="cs__card-badge cs__card-badge--error">TAP TO RETRY</span>
+                ) : (
+                  <span className="cs__card-badge cs__card-badge--idle">
+                    DOWNLOAD · {char.sizeMB}MB
                   </span>
                 )}
               </div>
