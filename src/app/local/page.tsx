@@ -554,50 +554,50 @@ function StageSelect({ onSelect, onCancel }: StageSelectProps) {
   }, [onCancel]); // eslint-disable-line
 
   return (
-    <div className="cs">
-      <h1 className="cs__title">
-        <span className="cs__title-main">SELECT</span>
-        <span className="cs__title-sub">STAGE</span>
+    <div className="ss">
+      <h1 className="ss__title">
+        <span className="ss__title-main">SELECT</span>
+        <span className="ss__title-sub">STAGE</span>
       </h1>
-      <div className="cs__grid">
+      <div className="ss__grid">
         {stages.map((s, i) => {
           const dl = downloadStates[s.id];
           const ready = isStageReady(s);
           return (
             <button
               key={s.id}
-              className={`cs__card cs__card--enter ${!ready ? "cs__card--downloadable" : ""}`}
+              className={`ss__card ${!ready ? "ss__card--downloadable" : ""}`}
               style={{ animationDelay: `${i * 100}ms` }}
               onClick={() => handleStageClick(s)}
             >
-              <div className="cs__card-portrait">
-                <span className="cs__card-initial">{s.displayName.charAt(0)}</span>
+              <div className="ss__card-portrait">
+                <span className="ss__card-initial">{s.displayName.charAt(0)}</span>
               </div>
-              <div className="cs__card-name">{s.displayName}</div>
-              <div className="cs__card-desc">{s.id === "uiu_campus_low" ? "Bundled stage" : "Downloadable"}</div>
+              <div className="ss__card-name">{s.displayName}</div>
+              <div className="ss__card-desc">{s.id === "uiu_campus_low" ? "Bundled stage" : "Downloadable"}</div>
               {s.id !== "uiu_campus_low" && (
-                <div className="cs__card-download">
-                  {dl?.status === "cached" && <span className="dl-badge dl-badge--cached">✓ Ready</span>}
+                <div className="ss__card-download">
+                  {dl?.status === "cached" && <span className="ss__dl-badge ss__dl-badge--cached">✓ Ready</span>}
                   {dl?.status === "downloading" && (
                     <>
-                      <span className="dl-badge dl-badge--downloading">{dl.progress?.toFixed(0)}%</span>
-                      <div className="dl-progress"><div className="dl-progress-fill" style={{ width: `${dl.progress}%` }} /></div>
+                      <span className="ss__dl-badge ss__dl-badge--downloading">{dl.progress?.toFixed(0)}%</span>
+                      <div className="ss__dl-progress"><div className="ss__dl-progress-fill" style={{ width: `${dl.progress}%` }} /></div>
                     </>
                   )}
-                  {dl?.status === "error" && <span className="dl-badge dl-badge--error">Failed</span>}
-                  {(!dl || dl.status === "idle") && <span className="dl-badge dl-badge--idle">Click to download</span>}
+                  {dl?.status === "error" && <span className="ss__dl-badge ss__dl-badge--error">Failed</span>}
+                  {(!dl || dl.status === "idle") && <span className="ss__dl-badge ss__dl-badge--idle">Click to download</span>}
                 </div>
               )}
             </button>
           );
         })}
       </div>
-      <div className="cs__footer">
-        <div className="cs__controls-help">
+      <div className="ss__footer">
+        <div className="ss__controls-help">
           <span>Click a stage to select · Downloadable stages must be downloaded first</span>
         </div>
-        <div className="cs__buttons">
-          <button onClick={onCancel} className="cs__btn cs__btn--back">◄ BACK</button>
+        <div className="ss__buttons">
+          <button onClick={onCancel} className="ss__btn ss__btn--back">◄ BACK</button>
         </div>
       </div>
     </div>

@@ -2816,3 +2816,190 @@ button { font-family: inherit; }
     text-align: center;
   }
 }
+
+/* ========================================
+   STAGE SELECT — original card grid style
+   (separate from character select DBFZ style)
+   ======================================== */
+
+.ss {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 16px;
+  position: relative;
+}
+
+.ss__title {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.ss__title-main {
+  display: block;
+  font-size: clamp(28px, 5vw, 44px);
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: var(--white);
+  -webkit-text-stroke: 2px var(--black);
+  text-shadow: 4px 4px 0 var(--red);
+  font-style: italic;
+  line-height: 1;
+}
+
+.ss__title-sub {
+  display: block;
+  font-size: clamp(14px, 2.5vw, 20px);
+  font-weight: 700;
+  letter-spacing: 6px;
+  color: var(--cyan);
+  margin-top: 2px;
+}
+
+.ss__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.ss__card {
+  position: relative;
+  background: var(--black-soft);
+  border: 1px solid var(--gray-dark);
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  padding: 14px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--white);
+  transition: all 0.15s;
+  font-family: inherit;
+  min-height: 180px;
+  overflow: hidden;
+  animation: ss-card-enter 0.4s ease-out backwards;
+}
+
+@keyframes ss-card-enter {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ss__card:hover {
+  background: var(--gray-dark);
+}
+
+.ss__card--downloadable {
+  opacity: 0.7;
+}
+
+.ss__card-portrait {
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--black);
+  border: 1px solid var(--gray-dark);
+  margin-bottom: 10px;
+  clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+}
+
+.ss__card-initial {
+  font-size: 42px;
+  font-weight: 700;
+  color: var(--gray);
+  font-style: italic;
+}
+
+.ss__card-name {
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  font-style: italic;
+}
+
+.ss__card-desc {
+  font-size: 12px;
+  color: var(--gray);
+  line-height: 1.4;
+}
+
+.ss__card-download {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ss__dl-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 1px 6px;
+  display: inline-block;
+}
+
+.ss__dl-badge--cached { color: var(--cyan); }
+.ss__dl-badge--downloading { color: var(--gold); }
+.ss__dl-badge--error { color: var(--red); }
+.ss__dl-badge--idle { color: var(--gray); }
+
+.ss__dl-progress {
+  width: 100%;
+  height: 2px;
+  background: var(--black-soft);
+  overflow: hidden;
+}
+
+.ss__dl-progress-fill {
+  height: 100%;
+  background: var(--gold);
+  transition: width 0.3s ease-out;
+}
+
+.ss__footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.ss__controls-help {
+  font-size: 12px;
+  color: var(--gray);
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+.ss__buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.ss__btn {
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  cursor: pointer;
+  font-family: inherit;
+  border: none;
+  transition: all 0.15s;
+  text-transform: uppercase;
+}
+
+.ss__btn--back {
+  background: transparent;
+  border: 1px solid var(--gray-dark);
+  color: var(--gray);
+}
+
+.ss__btn--back:hover {
+  color: var(--white);
+  border-color: var(--gray);
+}
+
+@media (max-width: 600px) {
+  .ss { padding: 10px; }
+  .ss__grid { grid-template-columns: 1fr; }
+}
