@@ -1,54 +1,62 @@
 "use client";
 
-import Link from "next/link";
+import { useWipeNavigation } from "@/components/WipeTransition";
+import { useSoundEffects } from "@/hooks/use-sound-effects";
 
 /**
- * Lobby page — main entry point.
- *
- * Shows two options:
- *   1. Local 2P — two players share one keyboard
- *   2. Online Multiplayer — play over the internet via WebSocket relay
+ * Lobby page — title screen with fighting-game aesthetic.
  */
 
 export default function LobbyPage() {
+  const { navigate } = useWipeNavigation();
+  const { play } = useSoundEffects();
+
+  const handleStart = () => {
+    play("confirm");
+    navigate("/local");
+  };
+
   return (
     <main className="lobby">
+      <div className="lobby__bg-grid" aria-hidden="true" />
+      <div className="lobby__bg-glow" aria-hidden="true" />
+
       <div className="lobby__card">
-        <h1 className="lobby__title">FIGHTING GAME ENGINE</h1>
-        <p className="lobby__subtitle">
-          Browser-based 2D fighting game · MUGEN + WebAssembly
-        </p>
-
-        <div className="lobby__section">
-          <h2 className="lobby__heading">Play Locally</h2>
-          <Link href="/local" className="btn btn--primary btn--large">
-            Local 2P (same keyboard)
-          </Link>
-          <p className="lobby__hint">
-            Two players, one keyboard. P1 uses WASD+UIO, P2 uses arrows+890.
-            Includes VS AI, Training, and AI vs AI modes.
-          </p>
+        <div className="lobby__logo">
+          <div className="lobby__logo-line">FIGHTING</div>
+          <div className="lobby__logo-line lobby__logo-line--accent">GAME</div>
+          <div className="lobby__logo-line">ENGINE</div>
+        </div>
+        <div className="lobby__subtitle">
+          <span className="lobby__subtitle-bracket">[</span>
+          BROWSER · WASM · 60FPS
+          <span className="lobby__subtitle-bracket">]</span>
         </div>
 
         <div className="lobby__section">
-          <h2 className="lobby__heading">Play Online</h2>
-          <Link href="/online" className="btn btn--primary btn--large">
-            Online Multiplayer
-          </Link>
+          <button
+            onClick={handleStart}
+            className="lobby__start-btn"
+          >
+            <span className="lobby__start-btn-text">PRESS START</span>
+            <span className="lobby__start-btn-sub">LOCAL 2P · VS AI</span>
+          </button>
           <p className="lobby__hint">
-            Play against a friend over the internet. Create a room and share
-            the 6-character code. Uses lockstep netcode over a free WebSocket
-            relay (Deno Deploy).
+            Local 2P: two players, one keyboard · VS AI: fight the computer
           </p>
         </div>
 
-        <div className="lobby__section lobby__section--links">
-          <a href="/test/input-bridge.html" className="lobby__link">
-            Phase 0.5 Input Bridge Test
-          </a>
-          <span className="lobby__version">Phase 4 · v0.4.0</span>
+        <div className="lobby__roster">
+          <span className="lobby__roster-label">ROSTER</span>
+          <div className="lobby__roster-chars">
+            <span className="lobby__roster-char lobby__roster-char--p1">SONGOKU</span>
+            <span className="lobby__roster-vs">VS</span>
+            <span className="lobby__roster-char lobby__roster-char--p2">VEGETA</span>
+          </div>
         </div>
       </div>
+
+      <footer className="footer-credit">Made by Nawaf Al Hussain</footer>
     </main>
   );
 }

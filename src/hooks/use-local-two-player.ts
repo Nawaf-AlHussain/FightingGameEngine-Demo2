@@ -130,9 +130,18 @@ export function useLocalTwoPlayer(
   // otherwise the empty string overrides the engine AI that setPlayerAI(0, n)
   // activated. Mirrors the existing p2KeyboardRef pattern.
   const p1KeyboardRef = useRef(enabled);
+  // When P2 keyboard is disabled (VS AI mode), send empty string for P2
+  // every frame. This activates the external input overlay for P2, which
+  // CLEARS the SDL keyboard bits (the engine has hardcoded P2 keyboard
+  // mappings that overlap with P1's keys: H J Y U I K). Without this,
+  // pressing P1 keys would leak to P2 via SDL. The AI uses mOverrideMask
+  // which is OR'd in AFTER the external overlay, so engine CNS AI input
+  // still works.
+  const p2SuppressKeyboardRef = useRef(!p2KeyboardEnabled);
 
   useEffect(() => {
     p2KeyboardRef.current = p2KeyboardEnabled;
+    p2SuppressKeyboardRef.current = !p2KeyboardEnabled;
   }, [p2KeyboardEnabled]);
 
   useEffect(() => {
@@ -219,9 +228,15 @@ export function useLocalTwoPlayer(
       // Only pump P2 if keyboard is enabled (AI/dummy handles P2 in single-player)
       if (p2KeyboardRef.current) {
         g.Module.ccall('setExternalPlayerInput', 'void', ['number', 'string'], [1, p2Input]);
+      } else if (p2SuppressKeyboardRef.current) {
+        // VS AI mode: send empty string for P2 every frame to suppress SDL
+        // keyboard leak from P1's keys. Engine CNS AI (activated via
+        // setPlayerAI in GameCanvas) uses mOverrideMask which is OR'd in
+        // AFTER the external overlay, so AI input still works.
+        g.Module.ccall('setExternalPlayerInput', 'void', ['number', 'string'], [1, '']);
       }
-    } catch (e) {
-      console.error("[Local2P] Failed to inject input:", e);
+    } catch (_) {
+      // Silent — input injection failures are non-recoverable but shouldn't spam console
     }
 
     // React state updates (throttled — every frame is fine for display)

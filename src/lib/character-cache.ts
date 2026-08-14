@@ -16,11 +16,11 @@ const DB_VERSION = 1;
 const STORE_NAME = "character-files";
 
 // Cache version — increment when character files change to invalidate old cache.
-// Bumped to 6 on Aug 6, 2026: engine now follows SFF v2 palette links
-// (palettes with mDataLength=0 that reference another palette via mIndex).
-// Old cached character files were processed by the old palette code — bumping
-// forces re-download.
-const CACHE_VERSION = 6;
+// Bumped to 14 on Aug 10, 2026: common1.cns fallback is now the stock MUGEN 1.0
+// baseline (served at /common1.cns) instead of Songoku's patched copy. Old
+// caches may have Songoku's common1.cns behavior baked into the runtime state
+// of previously-played characters — bumping forces a clean reload.
+const CACHE_VERSION = 14;
 
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -63,8 +63,9 @@ export async function isCharacterCached(
 
     if (version !== CACHE_VERSION) return false;
 
-    // Check each file exists
+    // Check each file exists (skip common1.cns — it's auto-copied, never cached)
     for (const filename of expectedFiles) {
+      if (filename === "common1.cns") continue;
       const key = `${charId}/${filename}`;
       const req = db
         .transaction(STORE_NAME, "readonly")
@@ -126,7 +127,6 @@ export async function getCachedCharacter(
       if (data) files.set(filename, data);
     }
   } catch (e) {
-    console.error("[CharacterCache] Failed to get cached character:", e);
   }
 
   return files;
@@ -159,15 +159,7 @@ export async function cacheCharacter(
       tx.onerror = () => reject(tx.error);
     });
 
-    console.log(
-      `[CharacterCache] Cached ${charId}: ${files.size} files, ${(
-        Array.from(files.values()).reduce((s, b) => s + b.byteLength, 0) /
-        1024 /
-        1024
-      ).toFixed(1)}MB`
-    );
   } catch (e) {
-    console.error("[CharacterCache] Failed to cache character:", e);
     throw e;
   }
 }
@@ -199,7 +191,6 @@ export async function evictCharacter(charId: string): Promise<void> {
       }
     }
   } catch (e) {
-    console.error("[CharacterCache] Failed to evict character:", e);
   }
 }
 
@@ -213,9 +204,7 @@ export async function clearCharacterCache(): Promise<void> {
       .transaction(STORE_NAME, "readwrite")
       .objectStore(STORE_NAME);
     store.clear();
-    console.log("[CharacterCache] Cache cleared");
   } catch (e) {
-    console.error("[CharacterCache] Failed to clear cache:", e);
   }
 }
 

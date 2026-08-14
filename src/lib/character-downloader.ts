@@ -50,20 +50,18 @@ async function downloadFile(
   signal: AbortSignal | undefined,
   onFileProgress: (downloaded: number, total: number) => void
 ): Promise<ArrayBuffer> {
-  // cache: 'no-cache' — always validate with server before using HTTP cache.
-  // Without this, the browser may serve a stale .def file from its HTTP cache
-  // (jsDelivr sets max-age=604800 = 7 days). When a character's .def is fixed
-  // in the assets repo (e.g., localcoord removed), the browser would keep
-  // serving the old cached version for up to 7 days.
-  // 'no-cache' sends a conditional request (If-None-Match/If-Modified-Since).
-  // If the file changed, server returns 200 with new body. If unchanged, 304
-  // (fast, no body transfer).
-  let response = await fetch(url, { signal, cache: "no-cache" });
+  // For .cmd files, skip jsDelivr entirely (it returns 403 for Windows batch
+  // extensions). Go straight to GitHub raw to avoid the 403 console error.
+  let actualUrl = url;
+  if (filename.endsWith(".cmd") && url.includes("cdn.jsdelivr.net")) {
+    actualUrl = jsdelivrToGithubRaw(url);
+  }
 
-  // If jsDelivr returns 403, try GitHub raw
-  if (!response.ok && response.status === 403) {
-    const githubRawUrl = jsdelivrToGithubRaw(url);
-    console.warn(`[CharacterDownloader] jsDelivr 403 for ${filename}, trying GitHub raw`);
+  let response = await fetch(actualUrl, { signal, cache: "no-cache" });
+
+  // If jsDelivr returns 403 or 404, try GitHub raw
+  if (!response.ok && (response.status === 403 || response.status === 404)) {
+    const githubRawUrl = jsdelivrToGithubRaw(actualUrl);
     response = await fetch(githubRawUrl, { signal, cache: "no-cache" });
   }
 
@@ -170,7 +168,15 @@ export async function downloadCharacter(
       if (e instanceof DOMException && e.name === "AbortError") {
         throw e;
       }
-      throw new Error(`Failed to download ${filename}: ${e instanceof Error ? e.message : String(e)}`);
+      // Skip files that return 404 (file not found on both CDNs).
+      // Some manifest entries reference files that don't exist in the repo
+      // (e.g., common1.cns is listed but not uploaded). The auto-copy
+      // logic in prepareCharacter() handles these after injection.
+      const errMsg = e instanceof Error ? e.message : String(e);
+      if (errMsg.includes("404")) {
+        continue;
+      }
+      throw new Error(`Failed to download ${filename}: ${errMsg}`);
     }
   }
 
@@ -185,10 +191,6 @@ export async function downloadCharacter(
   });
 
   const elapsedMs = performance.now() - startTime;
-  console.log(
-    `[CharacterDownloader] Downloaded ${charId}: ${files.length} files, ` +
-    `${(bytesDownloaded / 1024 / 1024).toFixed(1)}MB in ${(elapsedMs / 1000).toFixed(1)}s`
-  );
 
   return { files: fileMap, totalBytes: bytesDownloaded, elapsedMs };
 }

@@ -13,7 +13,7 @@ const DB_VERSION = 1;
 const STORE_NAME = "stage-files";
 
 // Cache version — increment when stage files change to invalidate old cache
-const CACHE_VERSION = 1;
+const CACHE_VERSION = 2;
 
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -119,7 +119,6 @@ export async function getCachedStage(
       if (data) files.set(filename, data);
     }
   } catch (e) {
-    console.error("[StageCache] Failed to get cached stage:", e);
   }
 
   return files;
@@ -152,15 +151,7 @@ export async function cacheStage(
       tx.onerror = () => reject(tx.error);
     });
 
-    console.log(
-      `[StageCache] Cached ${stageId}: ${files.size} files, ${(
-        Array.from(files.values()).reduce((s, b) => s + b.byteLength, 0) /
-        1024 /
-        1024
-      ).toFixed(1)}MB`
-    );
   } catch (e) {
-    console.error("[StageCache] Failed to cache stage:", e);
     throw e;
   }
 }
@@ -175,8 +166,6 @@ export async function clearStageCache(): Promise<void> {
       .transaction(STORE_NAME, "readwrite")
       .objectStore(STORE_NAME);
     store.clear();
-    console.log("[StageCache] Cache cleared");
   } catch (e) {
-    console.error("[StageCache] Failed to clear cache:", e);
   }
 }

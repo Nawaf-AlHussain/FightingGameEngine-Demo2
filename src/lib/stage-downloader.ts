@@ -45,14 +45,17 @@ async function downloadFile(
   signal: AbortSignal | undefined,
   onFileProgress: (downloaded: number, total: number) => void
 ): Promise<ArrayBuffer> {
-  // cache: 'no-cache' — always validate with server before using HTTP cache.
-  // See character-downloader.ts for full rationale.
-  let response = await fetch(url, { signal, cache: "no-cache" });
+  // For .cmd files, skip jsDelivr entirely (it returns 403)
+  let actualUrl = url;
+  if (filename.endsWith(".cmd") && url.includes("cdn.jsdelivr.net")) {
+    actualUrl = jsdelivrToGithubRaw(url);
+  }
 
-  // If jsDelivr returns 403, try GitHub raw
-  if (!response.ok && response.status === 403) {
-    const githubRawUrl = jsdelivrToGithubRaw(url);
-    console.warn(`[StageDownloader] jsDelivr 403 for ${filename}, trying GitHub raw`);
+  let response = await fetch(actualUrl, { signal, cache: "no-cache" });
+
+  // If jsDelivr returns 403 or 404, try GitHub raw
+  if (!response.ok && (response.status === 403 || response.status === 404)) {
+    const githubRawUrl = jsdelivrToGithubRaw(actualUrl);
     response = await fetch(githubRawUrl, { signal, cache: "no-cache" });
   }
 
@@ -159,7 +162,11 @@ export async function downloadStage(
       if (e instanceof DOMException && e.name === "AbortError") {
         throw e;
       }
-      throw new Error(`Failed to download ${filename}: ${e instanceof Error ? e.message : String(e)}`);
+      const errMsg = e instanceof Error ? e.message : String(e);
+      if (errMsg.includes("404")) {
+        continue;
+      }
+      throw new Error(`Failed to download ${filename}: ${errMsg}`);
     }
   }
 
@@ -174,10 +181,6 @@ export async function downloadStage(
   });
 
   const elapsedMs = performance.now() - startTime;
-  console.log(
-    `[StageDownloader] Downloaded ${stageId}: ${files.length} files, ` +
-    `${(bytesDownloaded / 1024 / 1024).toFixed(1)}MB in ${(elapsedMs / 1000).toFixed(1)}s`
-  );
 
   return { files: fileMap, totalBytes: bytesDownloaded, elapsedMs };
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { loadGameEngine, type GameInstance } from "@/lib/wasm-loader";
+import { UI_FLAGS } from "@/lib/ui-flags";
 
 interface GameCanvasProps {
   /** Called once when the WASM engine has finished initializing */
@@ -31,6 +32,10 @@ interface GameCanvasProps {
    * Defaults to true (local mode doesn't need the barrier).
    */
   canStart?: boolean;
+  /** @deprecated — newer engine removed this export; kept for API compat. No-op. */
+  p2HealthHandicap?: number;
+  /** @deprecated — newer engine removed this export; kept for API compat. No-op. */
+  p2PowerCap?: number;
 }
 
 /**
@@ -219,9 +224,21 @@ export default function GameCanvas({ onReady, onBeforeStart, p1Char = "Songoku",
   return (
     <div ref={containerRef} className="game-container">
       {status === "loading" && (
-        <div className="game-loading">
-          <div className="game-loading__spinner" />
-          <p>Loading game engine...</p>
+        <div className={`game-loading ${UI_FLAGS.styledLoadingScreen ? "game-loading--styled" : ""}`}>
+          {UI_FLAGS.styledLoadingScreen ? (
+            <>
+              <div className="game-loading__stripes" aria-hidden="true" />
+              <div className="game-loading__text">NOW LOADING</div>
+              <div className="game-loading__dots" aria-hidden="true">
+                <span /><span /><span />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="game-loading__spinner" />
+              <p>Loading game engine...</p>
+            </>
+          )}
         </div>
       )}
 
