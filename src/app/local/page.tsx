@@ -476,7 +476,8 @@ const BUNDLED_STAGES: StageInfo[] = [
  * yet or fails to load. The image fades in on top of the fallback letter
  * when it arrives, so there's no layout shift.
  *
- * URL pattern: stages/<id>/<id>.png (e.g. stages/masjid_al_mustafa/masjid_al_mustafa.png)
+ * URL pattern: stages/<id>.png (e.g. stages/Masjid_Al_Mustafa.png)
+ * Stage files are flat in the stages/ folder, not in subfolders.
  * The URL is captured ONCE on first render via useRef to avoid re-render
  * storms when the manifest version updates.
  */

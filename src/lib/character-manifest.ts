@@ -93,18 +93,18 @@ export function getPortraitUrl(charId: string): string {
 }
 
 /** Base URL for stage thumbnail images in the DemoAssets repo.
- *  Each stage folder should contain a <stageId>.png thumbnail.
- *  URL pattern: stages/<id>/<id>.png (e.g. stages/masjid_al_mustafa/masjid_al_mustafa.png)
- *  For the bundled stage (uiu_campus_low), the thumbnail is also fetched from
- *  DemoAssets so all thumbnails use the same URL pattern. */
+ *  Stage files are flat in the stages/ folder (not in subfolders), so the
+ *  thumbnail is at stages/<id>.png (e.g. stages/Masjid_Al_Mustafa.png).
+ *  For the bundled stage (uiu_campus_low), the thumbnail is also fetched
+ *  from DemoAssets so all thumbnails use the same URL pattern. */
 const STAGE_PORTRAIT_CDN_BASE =
   "https://cdn.jsdelivr.net/gh/FightingGameEngine/DemoAssets@main/stages/";
 
 /** Returns the thumbnail URL for a stage, with the manifest version as a
- *  cache-busting query string. The thumbnail file is <stageId>.png in the
- *  stages/<stageId>/ folder. */
+ *  cache-busting query string. The thumbnail file is <stageId>.png directly
+ *  in the stages/ folder (not a subfolder). */
 export function getStagePortraitUrl(stageId: string): string {
-  return `${STAGE_PORTRAIT_CDN_BASE}${stageId}/${stageId}.png?v=${cachedManifestVersion}`;
+  return `${STAGE_PORTRAIT_CDN_BASE}${stageId}.png?v=${cachedManifestVersion}`;
 }
 
 /**
