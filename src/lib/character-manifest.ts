@@ -156,13 +156,16 @@ export async function getAllCharacters(
 ): Promise<CharacterInfo[]> {
   const manifest = await fetchRemoteManifest();
 
-  // Convert manifest entries to CharacterInfo format
+  // Convert manifest entries to CharacterInfo format.
+  // Defensive: some manifest entries may be missing optional fields like
+  // 'description' or 'author' — default them to empty strings so the UI
+  // doesn't crash when rendering.
   const remoteChars: CharacterInfo[] = manifest.characters.map((entry) => ({
     id: entry.id,
-    displayName: entry.displayName,
-    author: entry.author,
-    description: entry.description,
-    sizeMB: entry.sizeMB,
+    displayName: entry.displayName || entry.id,
+    author: entry.author || "",
+    description: entry.description || "",
+    sizeMB: entry.sizeMB || 0,
     bundled: false,
     cdnBase: entry.cdnBase,
     files: entry.files,

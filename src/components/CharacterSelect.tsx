@@ -8,7 +8,7 @@
  *   - vsAI: P1 picks both characters (WASD+U for both). P2 is AI-controlled.
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   getBundledCharacters,
   type CharacterInfo,
@@ -38,10 +38,22 @@ interface CharacterSelectProps {
  * fallback to a bold first-letter design when the image hasn't been uploaded
  * yet or fails to load. The image fades in on top of the fallback letter
  * when it arrives, so there's no layout shift.
+ *
+ * IMPORTANT: The portrait URL is captured ONCE on first render via useRef.
+ * If we called getPortraitUrl() on every render, the URL would change when
+ * cachedManifestVersion updates (0 → 2 after manifest fetch), causing React
+ * to re-mount the <img> with a new src, triggering a second load/error cycle
+ * for every card. With 70+ characters, this creates a re-render storm that
+ * can freeze or crash real browsers. Capturing the URL once avoids this.
  */
 function Portrait({ charId, displayName }: { charId: string; displayName: string }) {
   const [imgStatus, setImgStatus] = useState<"loading" | "loaded" | "error">("loading");
-  const url = getPortraitUrl(charId);
+  // Capture the URL once — don't re-fetch when manifest version changes mid-session
+  const urlRef = useRef<string | null>(null);
+  if (urlRef.current === null) {
+    urlRef.current = getPortraitUrl(charId);
+  }
+  const url = urlRef.current;
 
   return (
     <>
