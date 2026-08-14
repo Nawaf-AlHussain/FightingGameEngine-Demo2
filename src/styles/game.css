@@ -2892,7 +2892,8 @@ button { font-family: inherit; }
 }
 
 .ss__card-portrait {
-  height: 80px;
+  position: relative;
+  height: 100px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2900,13 +2901,33 @@ button { font-family: inherit; }
   border: 1px solid var(--gray-dark);
   margin-bottom: 10px;
   clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  overflow: hidden;
 }
 
 .ss__card-initial {
+  position: absolute;
   font-size: 42px;
   font-weight: 700;
   color: var(--gray);
   font-style: italic;
+  z-index: 1;
+}
+
+/* Stage thumbnail image — hidden until loaded, then fades in on top */
+.ss__card-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 2;
+}
+
+.ss__card-img--visible {
+  opacity: 1;
 }
 
 .ss__card-name {

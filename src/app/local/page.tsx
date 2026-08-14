@@ -16,6 +16,7 @@ import type { CharacterInfo } from "@/lib/character-catalog";
 import type { GameInstance } from "@/lib/wasm-loader";
 import { isCharacterCached, getCachedCharacter, cacheCharacter } from "@/lib/character-cache";
 import { downloadCharacter, type DownloadProgress } from "@/lib/character-downloader";
+import { getStagePortraitUrl } from "@/lib/character-manifest";
 import { injectCharacterIntoWasm, isCharacterInWasm, injectStageIntoWasm, isStageInWasm } from "@/lib/wasm-asset-injector";
 import { isStageCached, getCachedStage } from "@/lib/stage-cache";
 
@@ -469,6 +470,39 @@ const BUNDLED_STAGES: StageInfo[] = [
   { id: "uiu_campus_low", displayName: "UIU Campus Low", def: "uiu_campus_low.def" },
 ];
 
+/**
+ * StageThumbnail — loads a stage thumbnail PNG from DemoAssets with a graceful
+ * fallback to a bold first-letter design when the image hasn't been uploaded
+ * yet or fails to load. The image fades in on top of the fallback letter
+ * when it arrives, so there's no layout shift.
+ *
+ * URL pattern: stages/<id>/<id>.png (e.g. stages/masjid_al_mustafa/masjid_al_mustafa.png)
+ * The URL is captured ONCE on first render via useRef to avoid re-render
+ * storms when the manifest version updates.
+ */
+function StageThumbnail({ stageId, displayName }: { stageId: string; displayName: string }) {
+  const [imgStatus, setImgStatus] = useState<"loading" | "loaded" | "error">("loading");
+  const urlRef = useRef<string | null>(null);
+  if (urlRef.current === null) {
+    urlRef.current = getStagePortraitUrl(stageId);
+  }
+  const url = urlRef.current;
+
+  return (
+    <>
+      <span className="ss__card-initial">{displayName.charAt(0)}</span>
+      <img
+        src={url}
+        alt=""
+        loading="lazy"
+        onLoad={() => setImgStatus("loaded")}
+        onError={() => setImgStatus("error")}
+        className={`ss__card-img ${imgStatus === "loaded" ? "ss__card-img--visible" : ""}`}
+      />
+    </>
+  );
+}
+
 interface StageSelectProps {
   onSelect: (stage: StageInfo) => void;
   onCancel: () => void;
@@ -571,7 +605,7 @@ function StageSelect({ onSelect, onCancel }: StageSelectProps) {
               onClick={() => handleStageClick(s)}
             >
               <div className="ss__card-portrait">
-                <span className="ss__card-initial">{s.displayName.charAt(0)}</span>
+                <StageThumbnail stageId={s.id} displayName={s.displayName} />
               </div>
               <div className="ss__card-name">{s.displayName}</div>
               <div className="ss__card-desc">{s.id === "uiu_campus_low" ? "Bundled stage" : "Downloadable"}</div>
